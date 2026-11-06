@@ -63,13 +63,59 @@ export function initChatbot() {
     return el;
   };
 
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const showDots = () => {
+    const el = document.createElement("div");
+    el.className = "cb-msg cb-msg--bot cb-dots";
+    el.setAttribute("aria-label", S.thinking);
+    el.innerHTML = "<span></span><span></span><span></span>";
+    log.appendChild(el); log.scrollTop = log.scrollHeight;
+    return el;
+  };
+  // Type the reply out word by word, keeping links/bold/lists intact
+  async function typeOut(html, links) {
+    const el = add("bot", html);
+    if (reduceMotion) { if (links) appendLinks(el, links); return el; }
+    // collect text nodes and line breaks in reading order; reveal them progressively
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+    const items = []; let n;
+    while ((n = walker.nextNode())) {
+      if (n.nodeType === 3) { items.push({ t: n, text: n.textContent }); n.textContent = ""; }
+      else if (n.tagName === "BR" || n.tagName === "LI" || n.tagName === "P" || n.tagName === "UL") { items.push({ e: n }); n.style.display = "none"; }
+    }
+    el.setAttribute("aria-busy", "true");
+    const total = items.reduce((a, x) => a + (x.text ? x.text.length : 0), 0);
+    const step = total > 600 ? 3 : total > 250 ? 2 : 1;
+    for (const it of items) {
+      if (it.e) { it.e.style.display = ""; continue; }
+      const words = it.text.split(/(\s+)/);
+      for (let i = 0; i < words.length; i += step) {
+        it.t.textContent += words.slice(i, i + step).join("");
+        log.scrollTop = log.scrollHeight;
+        await sleep(28);
+      }
+    }
+    el.removeAttribute("aria-busy");
+    if (links) appendLinks(el, links);
+    log.scrollTop = log.scrollHeight;
+    return el;
+  }
+  function appendLinks(el, links) {
+    if (!links.length) return;
+    const l = document.createElement("div");
+    l.className = "cb-msg__links";
+    l.innerHTML = `<span>${esc(S.sources)}</span>` + links.map((x) => `<a href="${x.href}">${esc(x.title)}</a>`).join("");
+    el.appendChild(l);
+  }
+
   const open = () => {
     panel.hidden = false;
     fab.setAttribute("aria-expanded", "true");
     root.dataset.opened = "true";
     try { sessionStorage.setItem("bicul-chat-opened", "1"); } catch (e) {}
     if (!log.children.length) {
-      add("bot", md(S.greeting));
+      typeOut(md(S.greeting));
       suggest.innerHTML = S.suggestions.map((q) => `<button type="button">${esc(q)}</button>`).join("");
     }
     setTimeout(() => input.focus(), 30);
@@ -165,12 +211,14 @@ export function initChatbot() {
     const lang = detectLang(q);
     const nq = norm(q).trim();
     if (/^(hi|hello|hey|good (morning|afternoon|evening)|ki kati|oli otya|gyebale|gyebale ko|wasuze otya|osiibye otya)[!. ]*$/.test(nq)) {
-      add("bot", md(LOCAL[lang].hi)); busy = false; return;
+      const d = showDots(); await sleep(600); d.remove(); await typeOut(md(LOCAL[lang].hi)); busy = false; return;
     }
     if (/^(thanks|thank you|webale|webale nnyo|mwebale)[!. ]*$/.test(nq)) {
-      add("bot", md(LOCAL[lang].thanks)); busy = false; return;
+      const d = showDots(); await sleep(600); d.remove(); await typeOut(md(LOCAL[lang].thanks)); busy = false; return;
     }
-    const wait = add("bot", `<span class="cb-typing">${esc(S.thinking)}</span>`);
+    const wait = showDots();
+    const started = Date.now();
+    const settle = async () => { const left = 700 - (Date.now() - started); if (left > 0) await sleep(left); wait.remove(); };
     history.push({ role: "user", content: q });
     try {
       let answered = false;
@@ -181,7 +229,8 @@ export function initChatbot() {
           if (r.ok) {
             const j = await r.json();
             if (j.reply) {
-              wait.innerHTML = md(j.reply);
+              await settle();
+              await typeOut(md(j.reply));
               history.push({ role: "assistant", content: j.reply });
               answered = true;
             }
@@ -192,12 +241,13 @@ export function initChatbot() {
       }
       if (!answered) {
         const a = await offlineAnswer(q, lang);
-        wait.remove();
-        add("bot", a.html, a.links);
+        await settle();
+        await typeOut(a.html, a.links);
         history.push({ role: "assistant", content: a.html.replace(/<[^>]+>/g, " ") });
       }
     } catch (e) {
-      wait.innerHTML = md(S.error);
+      wait.remove();
+      add("bot", md(S.error));
     }
     log.scrollTop = log.scrollHeight;
     busy = false;

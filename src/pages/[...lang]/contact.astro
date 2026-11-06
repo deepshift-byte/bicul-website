@@ -2,6 +2,7 @@
 import Base from "../../layouts/Base.astro";
 import PageHero from "../../components/PageHero.astro";
 import Icon from "../../components/Icon.astro";
+import WhatsApp from "../../components/WhatsApp.astro";
 import { langParams, langOf, t, data } from "../../lib/site.js";
 export const getStaticPaths = langParams;
 const lang = langOf(Astro.params.lang);
@@ -41,6 +42,7 @@ const mapQ = encodeURIComponent("Bulange, Mengo, Kampala, Uganda");
       </form>
     </div>
   </section>
+  <WhatsApp lang={lang} />
 </Base>
 <script>
   const form = document.querySelector("[data-contact-form]");
