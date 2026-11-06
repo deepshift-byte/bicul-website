@@ -1,0 +1,92 @@
+---
+import { t } from "../lib/site.js";
+const { lang } = Astro.props;
+const u = t(lang);
+const strings = {
+  greeting: u.chatGreeting, thinking: u.chatThinking, noAnswer: u.chatNoAnswer, error: u.chatError,
+  sources: u.chatSources, offline: u.chatOffline, suggestions: u.chatSuggestions,
+};
+---
+<div class="cb" data-lang={lang}>
+  <button class="cb__fab" type="button" aria-controls="cb-panel" aria-expanded="false" data-cb-open>
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 15a2 2 0 01-2 2H8l-4 4V5a2 2 0 012-2h12a2 2 0 012 2z"/><path d="M8 9h8M8 13h5"/></svg>
+    <span class="cb__fab-label">{u.chatOpen}</span>
+  </button>
+
+  <section class="cb__panel" id="cb-panel" role="dialog" aria-modal="false" aria-labelledby="cb-title" hidden>
+    <header class="cb__head">
+      <img src="/favicon.png" alt="" width="36" height="36" />
+      <div>
+        <h2 id="cb-title">{u.chatTitle}</h2>
+        <p>{u.chatSubtitle}</p>
+      </div>
+      <button type="button" class="cb__close" aria-label={u.chatClose} data-cb-close>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </header>
+    <div class="cb__log" role="log" aria-live="polite" data-cb-log></div>
+    <div class="cb__suggest" data-cb-suggest></div>
+    <form class="cb__form" data-cb-form>
+      <label class="sr-only" for="cb-input">{u.chatPlaceholder}</label>
+      <textarea id="cb-input" rows="1" maxlength="600" placeholder={u.chatPlaceholder} data-cb-input></textarea>
+      <button type="submit" aria-label={u.chatSend}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5z"/></svg>
+      </button>
+    </form>
+  </section>
+  <script type="application/json" data-cb-strings set:html={JSON.stringify(strings)} />
+</div>
+
+<script>
+  import { initChatbot } from "../lib/chatbot.js";
+  initChatbot();
+</script>
+
+<style>
+  .cb { position: fixed; right: clamp(14px, 3vw, 28px); bottom: clamp(14px, 3vw, 28px); z-index: 60; font-family: var(--body); }
+  .cb__fab { position: relative; display: flex; align-items: center; gap: 10px; height: 62px; padding: 0 22px 0 18px; border-radius: 999px; border: 0;
+    background: var(--lion); color: #fff; box-shadow: 0 10px 30px -8px rgba(15,26,69,.55), 0 0 0 4px rgba(201,151,43,.85); cursor: pointer;
+    animation: cb-bounce 4.5s ease-in-out 1.5s infinite; }
+  .cb__fab:hover { background: var(--night); animation-play-state: paused; }
+  .cb__fab-label { font-weight: 700; font-size: .98rem; }
+  .cb[data-opened="true"] .cb__fab { animation: none; }
+  @keyframes cb-bounce {
+    0%, 70%, 100% { transform: translateY(0); }
+    76% { transform: translateY(-14px); }
+    82% { transform: translateY(0); }
+    87% { transform: translateY(-6px); }
+    92% { transform: translateY(0); }
+  }
+  @media (max-width: 560px) { .cb__fab { width: 60px; height: 60px; padding: 0; justify-content: center; } .cb__fab-label { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .cb__fab { animation: none; } }
+
+  .cb__panel { position: absolute; right: 0; bottom: 78px; width: min(400px, calc(100vw - 28px)); height: min(600px, calc(100vh - 120px)); background: #fff;
+    border-radius: 18px; box-shadow: 0 24px 60px -18px rgba(15,26,69,.45); border: 1px solid var(--line); display: flex; flex-direction: column; overflow: hidden; }
+  .cb__panel[hidden] { display: none; }
+  .cb__head { display: grid; grid-template-columns: 36px 1fr 36px; gap: 12px; align-items: center; padding: 14px 14px 14px 16px; background: var(--night); color: #dfe4f6; }
+  .cb__head img { border-radius: 50%; background: #fff; }
+  .cb__head h2 { font: 700 1rem/1.2 var(--body); color: #fff; margin: 0; }
+  .cb__head p { margin: 2px 0 0; font-size: .8rem; line-height: 1.3; color: #b8c0e0; }
+  .cb__close { width: 36px; height: 36px; border-radius: 50%; border: 0; background: transparent; color: #fff; cursor: pointer; display: grid; place-items: center; }
+  .cb__close:hover { background: rgba(255,255,255,.12); }
+  .cb__log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: var(--stone); }
+  .cb__suggest { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px 0; background: #fff; }
+  .cb__suggest:empty { display: none; }
+  .cb__suggest button { border: 1.5px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 12px; font: 600 .82rem var(--body); color: var(--night); cursor: pointer; }
+  .cb__suggest button:hover { border-color: var(--lion); color: var(--lion); }
+  .cb__form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); background: #fff; }
+  .cb__form textarea { flex: 1; resize: none; border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 12px; font: 400 .95rem/1.4 var(--body); max-height: 120px; color: var(--ink); }
+  .cb__form textarea:focus { outline: none; border-color: var(--lion); }
+  .cb__form button { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--lion); color: #fff; cursor: pointer; display: grid; place-items: center; align-self: flex-end; }
+  .cb__form button:disabled { opacity: .5; cursor: default; }
+  :global(.cb-msg) { max-width: 88%; padding: 10px 13px; border-radius: 14px; font-size: .93rem; line-height: 1.5; overflow-wrap: anywhere; }
+  :global(.cb-msg p) { margin: 0 0 .5em; }
+  :global(.cb-msg p:last-child) { margin: 0; }
+  :global(.cb-msg ul) { margin: .3em 0 .5em; padding-left: 1.1em; }
+  :global(.cb-msg--bot) { background: #fff; border: 1px solid var(--line); align-self: flex-start; border-bottom-left-radius: 4px; }
+  :global(.cb-msg--user) { background: var(--lion); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+  :global(.cb-msg--user a) { color: #fff; }
+  :global(.cb-msg__links) { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: .85rem; }
+  :global(.cb-msg__links a) { display: block; padding: 2px 0; }
+  :global(.cb-typing) { color: var(--muted); font-style: italic; }
+</style>

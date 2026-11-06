@@ -1,0 +1,67 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHero from "../../components/PageHero.astro";
+import Icon from "../../components/Icon.astro";
+import { langParams, langOf, t, data, href } from "../../lib/site.js";
+export const getStaticPaths = langParams;
+const lang = langOf(Astro.params.lang);
+const u = t(lang); const d = data(lang); const A = d.about; const H = d.home;
+const divIcons = { "strategic-partnerships": "handshake", "monitoring-evaluation": "eye", statistics: "chart", incubation: "seed" };
+const tripleIcons = ["heritage", "people", "leaf"];
+---
+<Base lang={lang} path="/about" title={A.title} description={A.paras[0]}>
+  <PageHero lang={lang} title={A.title} lead={H.who_text} crumbs={[{ label: u.about }]} />
+
+  <section class="section">
+    <div class="wrap about-grid">
+      <div class="prose">
+        {A.paras.map((p) => <p class="about-p">{p}</p>)}
+      </div>
+      <dl class="statements">
+        <div class="statement"><dt>{u.vision}</dt><dd>{A.vision}</dd></div>
+        <div class="statement"><dt>{u.mission}</dt><dd>{A.mission}</dd></div>
+        <div class="statement"><dt>{u.motto}</dt><dd lang="lg">{A.motto}</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section section--night">
+    <div class="wrap">
+      <h2>{H.triple.title}</h2>
+      <p class="lead" style="color:#c9d0ea">{H.triple.intro}</p>
+      <div class="grid grid--3 triple">
+        {H.triple.items.map((it, i) => <div><Icon name={tripleIcons[i]} size={30} /><h3>{it.title}</h3><p>{it.text}</p></div>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <h2>{u.ourWork}</h2>
+      <div class="grid grid--2 divs">
+        {d.divisions.map((dv) => (
+          <a class="card div-card" href={href(lang, `/our-work/${dv.slug}`)}>
+            <div class="card__body">
+              <span class="div-icon"><Icon name={divIcons[dv.slug]} size={24} /></span>
+              <h3>{dv.title}</h3>
+              <p>{dv.summary}</p>
+              <span class="card__foot">{u.learnMore}</span>
+            </div>
+          </a>
+        ))}
+      </div>
+      <p style="margin-top:28px"><a class="link-arrow" href={href(lang, "/leadership")}>{u.leadership} <Icon name="arrow" size={18} /></a></p>
+    </div>
+  </section>
+</Base>
+<style>
+  .about-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: clamp(32px, 6vw, 80px); align-items: start; }
+  @media (max-width: 860px) { .about-grid { grid-template-columns: 1fr; } }
+  .about-p:first-child { font-size: 1.25rem; color: var(--night); }
+  .statements { display: grid; gap: 28px; margin: 0; }
+  .triple { margin-top: 32px; }
+  .triple > div { border-top: 2px solid var(--gold); padding-top: 22px; color: #c9d0ea; }
+  .triple :global(svg) { color: var(--gold); margin-bottom: 14px; }
+  .divs { margin-top: 24px; }
+  .div-icon { width: 48px; height: 48px; border-radius: 50%; background: var(--mist); color: var(--lion); display: grid; place-items: center; margin-bottom: 6px; }
+</style>

@@ -1,0 +1,46 @@
+---
+import Base from "../../../../layouts/Base.astro";
+import PageHero from "../../../../components/PageHero.astro";
+import OppCard from "../../../../components/OppCard.astro";
+import { langParams, langOf, t, data, href, DATA, sectorLabel, sectorSlug } from "../../../../lib/site.js";
+export const getStaticPaths = langParams;
+const lang = langOf(Astro.params.lang);
+const u = t(lang); const d = data(lang); const H = d.home;
+const opps = d.opportunities.map((o, i) => ({ o, sectors: DATA.en.opportunities[i].categories }));
+const sectorKeys = DATA.en.home.frontiers_tabs.slice(1);
+---
+<Base lang={lang} path="/invest/opportunities" title={u.opportunities} description={H.frontiers_text}>
+  <PageHero lang={lang} title={H.frontiers_title} lead={H.frontiers_text} crumbs={[{ label: u.invest, href: href(lang, "/invest") }, { label: u.opportunities }]} />
+  <section class="section section--stone">
+    <div class="wrap" data-filter-root>
+      <div class="chips" role="group" aria-label={u.filterBySector}>
+        <button class="chip" type="button" aria-pressed="true" data-sector="all">{u.allSectors} <span>{opps.length}</span></button>
+        {sectorKeys.map((s) => <button class="chip" type="button" aria-pressed="false" data-sector={sectorSlug(s)}>{sectorLabel(lang, s)} <span>{opps.filter((x) => x.sectors.includes(s)).length}</span></button>)}
+      </div>
+      <p class="meta" aria-live="polite" data-count data-template={u.shownCount("{n}", "{t}")}>{u.shownCount(opps.length, opps.length)}</p>
+      <div class="grid grid--3" data-grid>
+        {opps.map(({ o, sectors }) => <OppCard lang={lang} o={o} sectors={sectors} />)}
+      </div>
+    </div>
+  </section>
+</Base>
+<script>
+  const root = document.querySelector("[data-filter-root]");
+  const chips = root.querySelectorAll(".chip");
+  const cards = root.querySelectorAll(".opp");
+  const count = root.querySelector("[data-count]");
+  const apply = (s, push) => {
+    let n = 0;
+    chips.forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.sector === s)));
+    cards.forEach((c) => { const on = s === "all" || c.dataset.sectors.split(" ").includes(s); c.hidden = !on; if (on) n++; });
+    count.textContent = count.dataset.template.replace("{n}", n).replace("{t}", cards.length);
+    if (push) { const url = new URL(location.href); s === "all" ? url.searchParams.delete("sector") : url.searchParams.set("sector", s); history.replaceState(null, "", url); }
+  };
+  chips.forEach((c) => c.addEventListener("click", () => apply(c.dataset.sector, true)));
+  const initial = new URLSearchParams(location.search).get("sector");
+  if (initial && [...chips].some((c) => c.dataset.sector === initial)) apply(initial, false);
+</script>
+<style>
+  .chip span { opacity: .65; margin-left: 4px; font-size: .82em; }
+  [data-grid] :global(.opp[hidden]) { display: none; }
+</style>

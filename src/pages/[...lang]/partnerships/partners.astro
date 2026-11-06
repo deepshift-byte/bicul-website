@@ -1,0 +1,26 @@
+---
+import Base from "../../../layouts/Base.astro";
+import PageHero from "../../../components/PageHero.astro";
+import { langParams, langOf, t, data, href } from "../../../lib/site.js";
+export const getStaticPaths = langParams;
+const lang = langOf(Astro.params.lang);
+const u = t(lang); const d = data(lang);
+---
+<Base lang={lang} path="/partnerships/partners" title={u.partners} description={d.home.build_text}>
+  <PageHero lang={lang} title={u.partners} lead={d.home.build_text} crumbs={[{ label: u.partnerships, href: href(lang, "/partnerships") }, { label: u.partners }]} />
+  <section class="section">
+    <div class="wrap">
+      <p class="meta">{u.partnersCount(d.partners.length)}</p>
+      <ul class="grid grid--4 partners">
+        {d.partners.map((p) => (
+          <li class="logo-tile">
+            <div class="logo-tile__img"><img src={p.logo.src} width={p.logo.w} height={p.logo.h} alt="" loading="lazy" /></div>
+            <div class="logo-tile__name">{p.name}</div>
+          </li>
+        ))}
+      </ul>
+      <p style="margin-top:36px"><a class="btn btn--primary" href={href(lang, "/partnerships/guidelines")}>{u.partnershipDocs}</a></p>
+    </div>
+  </section>
+</Base>
+<style>.partners { list-style: none; padding: 0; margin: 16px 0 0; }</style>

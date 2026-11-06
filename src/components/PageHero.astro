@@ -1,0 +1,16 @@
+---
+import { t, href } from "../lib/site.js";
+const { lang, title, lead, crumbs = [] } = Astro.props;
+const u = t(lang);
+---
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href={href(lang, "/")}>{u.home}</a>
+      {crumbs.map((c) => <><span aria-hidden="true">/</span>{c.href ? <a href={c.href}>{c.label}</a> : <span>{c.label}</span>}</>)}
+    </nav>
+    <h1>{title}</h1>
+    {lead && <p class="lead">{lead}</p>}
+    <slot />
+  </div>
+</section>

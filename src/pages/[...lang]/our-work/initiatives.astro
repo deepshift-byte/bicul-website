@@ -1,0 +1,46 @@
+---
+import Base from "../../../layouts/Base.astro";
+import PageHero from "../../../components/PageHero.astro";
+import Blocks from "../../../components/Blocks.astro";
+import { langParams, langOf, t, data, DATA, sectorLabel } from "../../../lib/site.js";
+import { fmtDate } from "../../../i18n/ui.js";
+export const getStaticPaths = langParams;
+const lang = langOf(Astro.params.lang);
+const u = t(lang); const d = data(lang);
+const items = [
+  ...d.programs.map((o, i) => ({ o, kind: u.program, sectors: DATA.en.programs[i].categories })),
+  ...d.projects.map((o, i) => ({ o, kind: u.project, sectors: DATA.en.projects[i].categories })),
+];
+---
+<Base lang={lang} path="/our-work/initiatives" title={u.initiatives}>
+  <PageHero lang={lang} title={u.initiatives} crumbs={[{ label: u.ourWork }, { label: u.initiatives }]}>
+    <nav class="jump" aria-label={u.inThisSection}>{items.map(({ o }) => <a href={`#${o.slug}`}>{o.title}</a>)}</nav>
+  </PageHero>
+  {items.map(({ o, kind, sectors }, i) => (
+    <section class={`section ${i % 2 ? "section--stone" : ""}`} id={o.slug}>
+      <div class="wrap init">
+        <div class="init__media">
+          {o.image ? <img src={o.image.src} width={o.image.w} height={o.image.h} alt="" loading="lazy" /> : <div class="init__mark">{kind}</div>}
+        </div>
+        <div class="prose">
+          <div class="init__meta">
+            <span class="tag tag--gold">{kind}</span>
+            {sectors.map((s) => <span class="tag">{sectorLabel(lang, s)}</span>)}
+            <time class="meta" datetime={o.iso}>{fmtDate(o.iso, lang)}</time>
+          </div>
+          <h2>{o.title}</h2>
+          <Blocks blocks={o.body} />
+        </div>
+      </div>
+    </section>
+  ))}
+</Base>
+<style>
+  .jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+  .jump a { color: #fff; text-decoration: none; border: 1px solid rgba(255,255,255,.3); border-radius: 999px; padding: 8px 14px; font-weight: 600; font-size: .92rem; }
+  .init { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: clamp(28px, 5vw, 64px); align-items: start; }
+  @media (max-width: 860px) { .init { grid-template-columns: 1fr; } }
+  .init__media img { border-radius: var(--radius-l); width: 100%; }
+  .init__mark { aspect-ratio: 4/3; border-radius: var(--radius-l); background: var(--night); color: var(--gold); display: grid; place-items: center; font-family: var(--display); font-size: 2rem; }
+  .init__meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+</style>

@@ -1,0 +1,75 @@
+---
+import Base from "../../../layouts/Base.astro";
+import PageHero from "../../../components/PageHero.astro";
+import Icon from "../../../components/Icon.astro";
+import Blocks from "../../../components/Blocks.astro";
+import { langParams, langOf, t, data, href, stripEmoji } from "../../../lib/site.js";
+export const getStaticPaths = langParams;
+const lang = langOf(Astro.params.lang);
+const u = t(lang); const d = data(lang); const I = d.impact;
+const icons = ["seed", "book", "health", "youth", "gender", "leaf", "home", "civic"];
+const pillarIcons = ["seed", "book", "health", "gender", "youth", "leaf"];
+---
+<Base lang={lang} path="/partnerships" title={I.title} description={I.intro[0]}>
+  <PageHero lang={lang} title={I.title} lead={I.heading} crumbs={[{ label: u.partnerships }, { label: u.socialImpact }]} />
+  <section class="section">
+    <div class="wrap intro">
+      <div class="prose">{I.intro.map((p) => <p>{p}</p>)}</div>
+      <div>
+        <h2 class="pillars-title">{I.pillars_title}</h2>
+        <ul class="pillars">{I.pillars.map((p, i) => <li><Icon name={pillarIcons[i]} size={22} />{p}</li>)}</ul>
+      </div>
+    </div>
+  </section>
+  <section class="section section--stone">
+    <div class="wrap">
+      <div class="impact">
+        {I.sections.map((s, i) => (
+          <article class="impact__item">
+            <span class="impact__icon"><Icon name={icons[i]} size={24} /></span>
+            <div class="prose">
+              {s.name && <p class="impact__name">{s.name}</p>}
+              <h2>{stripEmoji(s.title)}</h2>
+              <Blocks blocks={s.blocks} />
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+  <section class="cta">
+    <div class="wrap cta__inner">
+      <div>
+        <h2>{I.closing_title}</h2>
+        <p>{I.closing}</p>
+        <p class="cta__strong">{I.closing_cta}</p>
+      </div>
+      <div class="cta__actions">
+        <a class="btn btn--gold" href={href(lang, "/contact")}>{d.home.hero_buttons[1]}</a>
+        <a class="btn btn--ghost" href={href(lang, "/partnerships/partners")}>{u.partners}</a>
+      </div>
+    </div>
+  </section>
+</Base>
+<style>
+  .intro { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 72px); align-items: start; }
+  @media (max-width: 900px) { .intro { grid-template-columns: 1fr; } }
+  .intro .prose p:first-child { font-size: 1.2rem; color: var(--night); }
+  .pillars-title { font-size: 1.4rem; }
+  .pillars { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pillars li { display: flex; gap: 10px; align-items: center; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-m); font-weight: 600; color: var(--night); }
+  .pillars :global(svg) { color: var(--lion); flex-shrink: 0; }
+  .impact { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+  @media (max-width: 900px) { .impact { grid-template-columns: 1fr; } }
+  .impact__item { background: #fff; border: 1px solid var(--line); border-radius: var(--radius-l); padding: clamp(22px, 3vw, 34px); display: grid; grid-template-columns: 48px 1fr; gap: 18px; }
+  .impact__icon { width: 48px; height: 48px; border-radius: 50%; background: var(--gold-soft); color: #6b4d0e; display: grid; place-items: center; }
+  .impact__item h2 { font-size: 1.45rem; margin-top: 0; }
+  .impact__item :global(h3) { font: 700 1rem var(--body); color: var(--night); margin: 1em 0 .4em; }
+  .impact__name { font-weight: 700; color: var(--lion); margin-bottom: 4px; }
+  .cta { background: var(--lion); color: #e3e7f6; padding-block: clamp(48px, 7vw, 80px); }
+  .cta__inner { display: flex; flex-wrap: wrap; gap: 24px 48px; align-items: center; justify-content: space-between; }
+  .cta h2 { color: #fff; }
+  .cta p { max-width: 62ch; }
+  .cta__strong { color: #fff; font-weight: 600; margin: 0; }
+  .cta__actions { display: flex; flex-wrap: wrap; gap: 12px; }
+</style>

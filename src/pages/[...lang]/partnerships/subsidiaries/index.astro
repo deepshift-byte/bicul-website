@@ -1,0 +1,32 @@
+---
+import Base from "../../../../layouts/Base.astro";
+import PageHero from "../../../../components/PageHero.astro";
+import { langParams, langOf, t, data, href, stripEmoji } from "../../../../lib/site.js";
+export const getStaticPaths = langParams;
+const lang = langOf(Astro.params.lang);
+const u = t(lang); const d = data(lang);
+const first = (s) => {
+  const p = s.body.find((b) => b.t === "p")?.x || "";
+  return p.length > 190 ? p.slice(0, 185).replace(/\s+\S*$/, "") + "…" : p;
+};
+---
+<Base lang={lang} path="/partnerships/subsidiaries" title={u.subsidiaries} description={d.home.arms_text}>
+  <PageHero lang={lang} title={d.home.arms_title} lead={d.home.arms_text} crumbs={[{ label: u.partnerships, href: href(lang, "/partnerships") }, { label: u.subsidiaries }]} />
+  <section class="section section--stone">
+    <div class="wrap">
+      <p class="meta">{u.subsidiariesCount(d.subsidiaries.length)}</p>
+      <div class="grid grid--3" style="margin-top:16px">
+        {d.subsidiaries.map((s) => (
+          <a class="card" href={href(lang, `/partnerships/subsidiaries/${s.slug}`)}>
+            <div class="card__media card__media--contain">{s.logo && <img src={s.logo.src} width={s.logo.w} height={s.logo.h} alt="" loading="lazy" />}</div>
+            <div class="card__body">
+              <h3>{s.name}</h3>
+              <p>{stripEmoji(first(s))}</p>
+              <span class="card__foot">{u.readMore}</span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>

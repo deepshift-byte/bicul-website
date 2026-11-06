@@ -1,0 +1,21 @@
+{
+  "name": "bicul-website",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0",
+    "@astrojs/vercel": "^11.0.20",
+    "@fontsource/hanken-grotesk": "^5.3.0",
+    "@fontsource/marcellus": "^5.3.0",
+    "astro": "^7.4.7"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

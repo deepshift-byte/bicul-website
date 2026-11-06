@@ -1,0 +1,71 @@
+---
+import Base from "../../../layouts/Base.astro";
+import PageHero from "../../../components/PageHero.astro";
+import Icon from "../../../components/Icon.astro";
+import { withLangs, t, data, href, DATA } from "../../../lib/site.js";
+export function getStaticPaths() {
+  return withLangs((lang) => DATA[lang].divisions.map((dv) => ({ params: { slug: dv.slug } })));
+}
+const { lang } = Astro.props;
+const u = t(lang); const d = data(lang);
+const dv = d.divisions.find((x) => x.slug === Astro.params.slug);
+const others = d.divisions.filter((x) => x.slug !== dv.slug);
+---
+<Base lang={lang} path={`/our-work/${dv.slug}`} title={dv.title} description={dv.lead}>
+  <PageHero lang={lang} title={dv.title} lead={dv.lead} crumbs={[{ label: u.ourWork }, { label: dv.title }]} />
+  <section class="section">
+    <div class="wrap layout">
+      <div class="prose">
+        {dv.paras.map((p) => <p>{p}</p>)}
+        {dv.link && (
+          <p><a class="btn btn--primary" href={dv.link.url} target="_blank" rel="noopener">{dv.link.label} <Icon name="external" size={16} /></a></p>
+        )}
+        {(dv.vision || dv.mission) && (
+          <dl class="vm">
+            {dv.vision && <div class="statement"><dt>{u.vision}</dt><dd>{dv.vision}</dd></div>}
+            {dv.mission && <div class="statement"><dt>{u.mission}</dt><dd>{dv.mission}</dd></div>}
+          </dl>
+        )}
+        {dv.objectives?.length > 0 && <>
+          <h2>{u.objectives}</h2>
+          <ol class="objectives">{dv.objectives.map((o) => <li>{o}</li>)}</ol>
+        </>}
+      </div>
+      <aside class="side">
+        <h2 class="side__title">{u.contacts}</h2>
+        <ul class="contacts">
+          {dv.contacts.map((c) => (
+            <li class="contact-card">
+              {c.photo && <img src={c.photo.src} alt={c.name} width="88" height="88" loading="lazy" />}
+              <div>
+                <h3>{c.name}</h3>
+                <p>{c.role}</p>
+                <p><a href={`mailto:${c.email}`}>{c.email}</a></p>
+                {c.tel && <p>{u.tel}: <a href={`tel:${c.tel.replace(/[^\d+]/g, "").replace("+2560", "+256")}`}>{c.tel}</a></p>}
+              </div>
+            </li>
+          ))}
+        </ul>
+        <h2 class="side__title" style="margin-top:36px">{u.divisions}</h2>
+        <ul class="side-links">
+          {others.map((o) => <li><a href={href(lang, `/our-work/${o.slug}`)}>{o.title}</a></li>)}
+          <li><a href={href(lang, "/our-work/initiatives")}>{u.initiatives}</a></li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+</Base>
+<style>
+  .layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 72px); align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  .vm { display: grid; gap: 24px; margin: 36px 0; }
+  .objectives { padding-left: 0; list-style: none; counter-reset: o; display: grid; gap: 12px; }
+  .objectives li { counter-increment: o; display: grid; grid-template-columns: 40px 1fr; gap: 12px; padding: 14px 16px; background: var(--stone); border-radius: var(--radius-m); }
+  .objectives li::before { content: counter(o); font-family: var(--display); font-size: 1.4rem; color: var(--gold); }
+  .side { position: sticky; top: 100px; }
+  .side__title { font: 700 .85rem var(--body); color: var(--muted); }
+  .contacts { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+  .side-links { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; }
+  .side-links a { display: block; padding: 10px 12px; border-radius: var(--radius-s); text-decoration: none; font-weight: 600; }
+  .side-links a:hover { background: var(--mist); }
+</style>

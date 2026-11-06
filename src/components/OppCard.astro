@@ -1,0 +1,26 @@
+---
+import Icon from "./Icon.astro";
+import { t, href, sectorLabel, sectorSlug, acres } from "../lib/site.js";
+const { lang, o, sectors } = Astro.props;  // sectors = English sector keys
+const u = t(lang);
+const size = acres(o.summary?.[0]);
+---
+<a class="card opp" href={href(lang, `/invest/opportunities/${o.slug}`)} data-sectors={sectors.map(sectorSlug).join(" ")}>
+  <div class="card__media">
+    {o.image ? <img src={o.image.src} width={o.image.w} height={o.image.h} alt="" loading="lazy" decoding="async" />
+      : <div class="placeholder-art"><Icon name="land" size={64} /></div>}
+  </div>
+  <div class="card__body">
+    <div class="opp__meta">
+      {sectors.map((s) => <span class="tag">{sectorLabel(lang, s)}</span>)}
+      {size && <span class="opp__size">{size} {u.acres}</span>}
+    </div>
+    <h3>{o.title}</h3>
+    <p>{o.summary?.[0]}</p>
+    <span class="card__foot">{u.viewOpportunity}</span>
+  </div>
+</a>
+<style>
+  .opp__meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .opp__size { margin-left: auto; font-family: var(--display); font-size: 1.15rem; color: var(--night); white-space: nowrap; }
+</style>

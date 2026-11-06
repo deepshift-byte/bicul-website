@@ -1,0 +1,22 @@
+---
+import { t, href, stripEmoji } from "../lib/site.js";
+import { fmtDate } from "../i18n/ui.js";
+const { lang, n, compact = false } = Astro.props;
+const u = t(lang);
+const first = n.body.find((b) => b.t === "p")?.x || "";
+const excerpt = stripEmoji(first).replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+---
+<a class="card" href={href(lang, `/news/${n.slug}`)} data-year={n.iso?.slice(0, 4)}>
+  <div class="card__media">
+    {n.image && <img src={n.image.src} width={n.image.w} height={n.image.h} alt="" loading="lazy" decoding="async" />}
+  </div>
+  <div class="card__body">
+    <time class="meta" datetime={n.iso}>{fmtDate(n.iso, lang)}</time>
+    <h3>{n.title}</h3>
+    {!compact && <p class="clamp">{excerpt}</p>}
+    <span class="card__foot">{u.readArticle}</span>
+  </div>
+</a>
+<style>
+  .clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+</style>

@@ -1,0 +1,44 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHero from "../../components/PageHero.astro";
+import { langParams, langOf, t, data, href } from "../../lib/site.js";
+export const getStaticPaths = langParams;
+const lang = langOf(Astro.params.lang);
+const u = t(lang); const d = data(lang); const P = d.people;
+const groups = [
+  { id: "board", title: u.board, intro: P.board_intro, people: P.board },
+  { id: "advisory", title: u.advisory, intro: null, people: P.advisory },
+  { id: "team", title: u.team, intro: P.team_intro, people: P.team },
+];
+---
+<Base lang={lang} path="/leadership" title={u.leadership} description={P.board_intro}>
+  <PageHero lang={lang} title={u.leadership} lead={P.board_intro} crumbs={[{ label: u.about, href: href(lang, "/about") }, { label: u.leadership }]}>
+    <nav class="jump" aria-label={u.inThisSection}>
+      {groups.map((g) => <a href={`#${g.id}`}>{g.title} <span>{g.people.length}</span></a>)}
+    </nav>
+  </PageHero>
+  {groups.map((g, gi) => (
+    <section class={`section ${gi % 2 ? "section--stone" : ""}`} id={g.id}>
+      <div class="wrap">
+        <h2>{g.title}</h2>
+        {g.intro && <p class="lead">{g.intro}</p>}
+        <ul class="people">
+          {g.people.map((p) => (
+            <li class="person">
+              <div class="person__photo">{p.photo && <img src={p.photo.src} width={p.photo.w} height={p.photo.h} alt={p.name} loading="lazy" />}</div>
+              <h3>{p.name}</h3>
+              {p.role && <p>{p.role}</p>}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  ))}
+</Base>
+<style>
+  .jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+  .jump a { color: #fff; text-decoration: none; border: 1px solid rgba(255,255,255,.3); border-radius: 999px; padding: 8px 14px; font-weight: 600; font-size: .92rem; }
+  .jump a:hover { background: rgba(255,255,255,.1); }
+  .jump span { opacity: .7; margin-left: 4px; }
+  .people { list-style: none; padding: 0; margin: 28px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 28px 22px; }
+</style>

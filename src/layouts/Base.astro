@@ -1,0 +1,168 @@
+---
+import "@fontsource/marcellus/400.css";
+import "@fontsource/hanken-grotesk/400.css";
+import "@fontsource/hanken-grotesk/500.css";
+import "@fontsource/hanken-grotesk/600.css";
+import "@fontsource/hanken-grotesk/700.css";
+import "../styles/global.css";
+import { t, data, nav, href } from "../lib/site.js";
+import Chatbot from "../components/Chatbot.astro";
+import Icon from "../components/Icon.astro";
+
+const { lang = "en", path = "/", title, description } = Astro.props;
+const u = t(lang);
+const d = data(lang);
+const items = nav(lang);
+const other = lang === "en" ? "lg" : "en";
+const fullTitle = title ? `${title} · BICUL` : `BICUL · ${u.orgName}`;
+const desc = description || d.home.who_text;
+const here = href(lang, path);
+const isActiveGroup = (g) => g.items?.some((i) => here === i.href || (i.href !== href(lang, "/") && here.startsWith(i.href + "/")));
+const site = Astro.site ? Astro.site.href.replace(/\/$/, "") : "";
+const f = d.footer;
+---
+<!doctype html>
+<html lang={lang === "lg" ? "lg" : "en"}>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={desc} />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="alternate" hreflang="en" href={site + href("en", path)} />
+  <link rel="alternate" hreflang="lg" href={site + href("lg", path)} />
+  <link rel="alternate" hreflang="x-default" href={site + href("en", path)} />
+  <meta property="og:title" content={fullTitle} />
+  <meta property="og:description" content={desc} />
+  <meta property="og:image" content={site + "/media/bulange-twekobe.webp"} />
+  <meta property="og:locale" content={lang === "lg" ? "lg_UG" : "en_UG"} />
+  <meta name="theme-color" content="#0f1a45" />
+  <script is:inline define:vars={{ lang, path }}>
+    try {
+      var saved = localStorage.getItem("bicul-lang");
+      var fromSite = document.referrer && document.referrer.indexOf(location.origin) === 0;
+      // returning visitors who chose Luganda land on the Luganda home page
+      if (lang === "en" && path === "/" && saved === "lg" && !fromSite) { location.replace("/lg/"); }
+      else localStorage.setItem("bicul-lang", lang);
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">{u.skip}</a>
+  <header class="site-header">
+    <div class="wrap site-header__bar">
+      <a class="brand" href={href(lang, "/")} aria-label={`BICUL — ${u.home}`}>
+        <img src="/logo.png" alt="Buganda Investments and Commercial Undertakings Ltd" width="340" height="215" />
+      </a>
+      <nav class="nav" aria-label={u.menu}>
+        {items.map((g) => g.items ? (
+          <div class="nav__item">
+            <button class="nav__top" aria-expanded="false" aria-current={isActiveGroup(g) ? "true" : undefined} type="button">
+              {g.label}<Icon name="chev" size={14} />
+            </button>
+            <div class="nav__panel">
+              {g.items.map((i) => <a href={i.href} aria-current={here === i.href ? "page" : undefined}>{i.label}</a>)}
+            </div>
+          </div>
+        ) : (
+          <div class="nav__item"><a class="nav__top" href={g.href} aria-current={here === g.href ? "true" : undefined}>{g.label}</a></div>
+        ))}
+      </nav>
+      <div class="lang-switch lang-switch--desk" role="group" aria-label={u.language}>
+        <a href={href("en", path)} hreflang="en" lang="en" aria-current={lang === "en" ? "true" : undefined} data-lang="en">EN</a>
+        <a href={href("lg", path)} hreflang="lg" lang="lg" aria-current={lang === "lg" ? "true" : undefined} data-lang="lg">LG</a>
+      </div>
+      <button class="menu-btn" type="button" aria-controls="drawer" aria-expanded="false" data-open-drawer>
+        <Icon name="menu" size={18} />{u.menu}
+      </button>
+    </div>
+  </header>
+
+  <div class="drawer" id="drawer" data-open="false">
+    <div class="drawer__panel" role="dialog" aria-modal="true" aria-label={u.menu}>
+      <div class="drawer__head">
+        <div class="lang-switch" role="group" aria-label={u.language}>
+          <a href={href("en", path)} hreflang="en" aria-current={lang === "en" ? "true" : undefined} data-lang="en">English</a>
+          <a href={href("lg", path)} hreflang="lg" aria-current={lang === "lg" ? "true" : undefined} data-lang="lg">Luganda</a>
+        </div>
+        <button class="menu-btn" style="display:inline-flex;margin:0" type="button" data-close-drawer><Icon name="x" size={18} />{u.close}</button>
+      </div>
+      <div class="drawer__group"><a href={href(lang, "/")}>{u.home}</a></div>
+      {items.map((g) => (
+        <div class="drawer__group">
+          {g.items ? <><p>{g.label}</p>{g.items.map((i) => <a href={i.href}>{i.label}</a>)}</> : <a href={g.href}>{g.label}</a>}
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <main id="main"><slot /></main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img src="/logo.png" alt="BICUL" width="340" height="215" loading="lazy" />
+          <p>{u.footerAbout}</p>
+          <p>{d.contact.address}<br />
+            <a href="mailto:info@bicul.co.ug">info@bicul.co.ug</a><br />
+            <a href={`tel:${d.contact.tel_link}`}>{d.contact.tel}</a> · <a href={`tel:${f.phone_link}`}>{f.phone_display}</a></p>
+          <div class="socials" aria-label={u.followUs}>
+            <a href={f.social[0]} rel="noopener" target="_blank" aria-label="Facebook"><Icon name="facebook" size={18} /></a>
+            <a href={f.social[1]} rel="noopener" target="_blank" aria-label="Instagram"><Icon name="instagram" size={18} /></a>
+            <a href={f.social[2]} rel="noopener" target="_blank" aria-label="X"><Icon name="x-logo" size={16} /></a>
+          </div>
+        </div>
+        {items.filter((g) => g.items).slice(0, 4).map((g, i) => (
+          <div>
+            <h2>{g.label}</h2>
+            <ul>
+              {g.items.map((it) => <li><a href={it.href}>{it.label}</a></li>)}
+              {i === 3 && <>
+                {items.find((x) => x.items && x.label === u.newsMedia).items.map((it) => <li><a href={it.href}>{it.label}</a></li>)}
+                <li><a href={href(lang, "/contact")}>{u.contact}</a></li>
+              </>}
+            </ul>
+          </div>
+        ))}
+      </div>
+      <div class="footer-base">
+        <span>© {new Date().getFullYear()} {u.orgName}. {u.rights}</span>
+        <span><a href={f.webmail} rel="noopener" target="_blank">{u.webmail}</a> · <a href={href(other, path)} hreflang={other}>{other === "lg" ? "Soma mu Luganda" : "Read in English"}</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <Chatbot lang={lang} />
+
+  <script>
+    const drawer = document.getElementById("drawer");
+    const openBtns = document.querySelectorAll("[data-open-drawer]");
+    const setOpen = (v) => {
+      drawer.dataset.open = String(v);
+      openBtns.forEach((b) => b.setAttribute("aria-expanded", String(v)));
+      document.body.style.overflow = v ? "hidden" : "";
+      if (v) drawer.querySelector("a,button")?.focus();
+    };
+    openBtns.forEach((b) => b.addEventListener("click", () => setOpen(true)));
+    drawer.querySelectorAll("[data-close-drawer]").forEach((b) => b.addEventListener("click", () => setOpen(false)));
+    drawer.addEventListener("click", (e) => { if (e.target === drawer) setOpen(false); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && drawer.dataset.open === "true") setOpen(false); });
+    // keep dropdown buttons' aria-expanded in sync for screen readers
+    document.querySelectorAll(".nav__item").forEach((it) => {
+      const b = it.querySelector("button.nav__top");
+      if (!b) return;
+      const sync = (v) => b.setAttribute("aria-expanded", String(v));
+      it.addEventListener("mouseenter", () => sync(true));
+      it.addEventListener("mouseleave", () => sync(false));
+      it.addEventListener("focusin", () => sync(true));
+      it.addEventListener("focusout", (e) => { if (!it.contains(e.relatedTarget)) sync(false); });
+    });
+    // remember the language the visitor picks
+    document.querySelectorAll("[data-lang]").forEach((a) => a.addEventListener("click", () => {
+      try { localStorage.setItem("bicul-lang", a.dataset.lang); } catch (e) {}
+    }));
+  </script>
+</body>
+</html>

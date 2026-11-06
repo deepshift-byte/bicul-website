@@ -1,0 +1,64 @@
+---
+import Base from "../../../../layouts/Base.astro";
+import PageHero from "../../../../components/PageHero.astro";
+import Icon from "../../../../components/Icon.astro";
+import OppCard from "../../../../components/OppCard.astro";
+import { withLangs, t, data, href, DATA, sectorLabel, acres } from "../../../../lib/site.js";
+export function getStaticPaths() {
+  return withLangs((lang) => DATA[lang].opportunities.map((o) => ({ params: { slug: o.slug } })));
+}
+const { lang } = Astro.props;
+const u = t(lang); const d = data(lang);
+const idx = d.opportunities.findIndex((x) => x.slug === Astro.params.slug);
+const o = d.opportunities[idx];
+const sectors = DATA.en.opportunities[idx].categories;
+const size = acres(o.summary?.[0]);
+const related = d.opportunities.map((x, i) => ({ o: x, sectors: DATA.en.opportunities[i].categories }))
+  .filter((x) => x.o.slug !== o.slug)
+  .sort((a, b) => (b.sectors.some((s) => sectors.includes(s)) ? 1 : 0) - (a.sectors.some((s) => sectors.includes(s)) ? 1 : 0))
+  .slice(0, 3);
+---
+<Base lang={lang} path={`/invest/opportunities/${o.slug}`} title={o.title} description={o.summary?.[0]}>
+  <PageHero lang={lang} title={o.title} crumbs={[{ label: u.invest, href: href(lang, "/invest") }, { label: u.opportunities, href: href(lang, "/invest/opportunities") }, { label: o.title }]} />
+  <section class="section">
+    <div class="wrap opp">
+      <div>
+        {o.image ? <img class="opp__img" src={o.image.src} width={o.image.w} height={o.image.h} alt={o.title} />
+          : <div class="opp__img placeholder-art"><Icon name="land" size={72} /></div>}
+        <div class="prose" style="margin-top:28px">
+          {o.summary.map((p) => <p class="opp__summary">{p}</p>)}
+        </div>
+      </div>
+      <aside class="facts">
+        <h2>{u.keyFacts}</h2>
+        <dl>
+          <div><dt>{u.sector}</dt><dd>{sectors.map((s) => <a class="tag" href={href(lang, `/invest/opportunities?sector=${s.toLowerCase().replace(/&/g, "and").replace(/[^a-z]+/g, "-")}`)}>{sectorLabel(lang, s)}</a>)}</dd></div>
+          {size && <div><dt>{u.size}</dt><dd class="facts__big">{size} {u.acres}</dd></div>}
+        </dl>
+        <a class="btn btn--primary" href={href(lang, "/contact")}>{d.home.cta_buttons[0]}</a>
+        <p class="facts__note"><Icon name="mail" size={16} /> <a href="mailto:info@bicul.co.ug">info@bicul.co.ug</a><br /><Icon name="phone" size={16} /> <a href="tel:+256708400208">+256 708 400 208</a></p>
+      </aside>
+    </div>
+  </section>
+  <section class="section section--stone">
+    <div class="wrap">
+      <h2>{u.moreOpportunities}</h2>
+      <div class="grid grid--3">{related.map((r) => <OppCard lang={lang} o={r.o} sectors={r.sectors} />)}</div>
+    </div>
+  </section>
+</Base>
+<style>
+  .opp { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 64px); align-items: start; }
+  @media (max-width: 900px) { .opp { grid-template-columns: 1fr; } }
+  .opp__img { width: 100%; border-radius: var(--radius-l); aspect-ratio: 16/10; object-fit: cover; background: var(--mist); }
+  .opp__summary { font-size: 1.3rem !important; color: var(--night); line-height: 1.5; }
+  .facts { position: sticky; top: 100px; border: 1px solid var(--line); border-radius: var(--radius-l); padding: 24px; display: grid; gap: 18px; }
+  .facts h2 { font: 700 .85rem var(--body); color: var(--muted); margin: 0; }
+  .facts dl { margin: 0; display: grid; gap: 16px; }
+  .facts dt { font-size: .85rem; color: var(--muted); margin-bottom: 6px; }
+  .facts dd { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .facts .tag { text-decoration: none; }
+  .facts__big { font-family: var(--display); font-size: 2.4rem; color: var(--lion); line-height: 1; }
+  .facts__note { margin: 0; font-size: .92rem; line-height: 1.9; }
+  .facts__note :global(svg) { vertical-align: -3px; color: var(--muted); }
+</style>

@@ -1,0 +1,27 @@
+---
+// Renders content blocks extracted from the original site: p, h, ul/ol, quote, img
+import { inline } from "../lib/site.js";
+const { blocks = [] } = Astro.props;
+// group consecutive images into pairs/galleries
+const groups = [];
+for (const b of blocks) {
+  if (b.t === "img" && groups.length && groups.at(-1).t === "imgs") groups.at(-1).items.push(b);
+  else if (b.t === "img") groups.push({ t: "imgs", items: [b] });
+  else groups.push(b);
+}
+const isLabel = (x) => /:$/.test(x.trim()) && x.length < 60;
+---
+{groups.map((b) => {
+  if (b.t === "h") return <h3 set:html={inline(b.x)} />;
+  if (b.t === "p" && isLabel(b.x)) return <h3 set:html={inline(b.x)} />;
+  if (b.t === "p") return <p set:html={inline(b.x)} />;
+  if (b.t === "quote") return <blockquote set:html={inline(b.x)} />;
+  if (b.t === "ul") return <ul>{b.items.map((i) => <li set:html={inline(i)} />)}</ul>;
+  if (b.t === "ol") return <ol>{b.items.map((i) => <li set:html={inline(i)} />)}</ol>;
+  if (b.t === "imgs" && b.items.length === 1) {
+    const im = b.items[0];
+    return <figure><img src={im.src.src} width={im.src.w} height={im.src.h} alt={im.alt || ""} loading="lazy" decoding="async" /></figure>;
+  }
+  if (b.t === "imgs") return <div class="figure-pair">{b.items.map((im) => <img src={im.src.src} width={im.src.w} height={im.src.h} alt={im.alt || ""} loading="lazy" decoding="async" />)}</div>;
+  return null;
+})}

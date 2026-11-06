@@ -1,0 +1,57 @@
+---
+import Base from "../../../../layouts/Base.astro";
+import PageHero from "../../../../components/PageHero.astro";
+import Blocks from "../../../../components/Blocks.astro";
+import Icon from "../../../../components/Icon.astro";
+import { withLangs, t, data, href, DATA } from "../../../../lib/site.js";
+export function getStaticPaths() {
+  return withLangs((lang) => DATA[lang].subsidiaries.map((s) => ({ params: { slug: s.slug } })));
+}
+const { lang } = Astro.props;
+const u = t(lang); const d = data(lang);
+const i = d.subsidiaries.findIndex((x) => x.slug === Astro.params.slug);
+const s = d.subsidiaries[i];
+const prev = d.subsidiaries[(i - 1 + d.subsidiaries.length) % d.subsidiaries.length];
+const next = d.subsidiaries[(i + 1) % d.subsidiaries.length];
+// split "Mission: …" / "Vision: …" paragraphs into statements
+const isMV = (x) => /^(Mission|Vision|Ekigendererwa|Ekirooto):/.test(x || "");
+const body = s.body.filter((b) => !(b.t === "p" && isMV(b.x)));
+const mv = s.body.filter((b) => b.t === "p" && isMV(b.x)).map((b) => { const k = b.x.indexOf(":"); return { k: b.x.slice(0, k), v: b.x.slice(k + 1).trim() }; });
+const host = s.website ? new URL(s.website).hostname.replace(/^www\./, "") : null;
+---
+<Base lang={lang} path={`/partnerships/subsidiaries/${s.slug}`} title={s.name} description={s.body.find((b) => b.t === "p")?.x}>
+  <PageHero lang={lang} title={s.name} crumbs={[{ label: u.partnerships, href: href(lang, "/partnerships") }, { label: u.subsidiaries, href: href(lang, "/partnerships/subsidiaries") }, { label: s.name }]} />
+  <section class="section">
+    <div class="wrap sub">
+      <div class="prose">
+        <Blocks blocks={body} />
+        {mv.length > 0 && <dl class="mv">{mv.map((m) => <div class="statement"><dt>{m.k}</dt><dd>{m.v}</dd></div>)}</dl>}
+      </div>
+      <aside class="sub__side">
+        <div class="sub__logo">{s.image && <img src={s.image.src} width={s.image.w} height={s.image.h} alt={s.name} />}</div>
+        {s.website && <a class="btn btn--primary" href={s.website} target="_blank" rel="noopener">{u.visitWebsite} <Icon name="external" size={16} /></a>}
+        {host && <p class="meta">{host}</p>}
+      </aside>
+    </div>
+  </section>
+  <nav class="section section--stone pager" aria-label={u.subsidiaries}>
+    <div class="wrap pager__inner">
+      <a href={href(lang, `/partnerships/subsidiaries/${prev.slug}`)}><span>{u.previous}</span>{prev.name}</a>
+      <a href={href(lang, `/partnerships/subsidiaries/${next.slug}`)} class="pager__next"><span>{u.next}</span>{next.name}</a>
+    </div>
+  </nav>
+</Base>
+<style>
+  .sub { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 64px); align-items: start; }
+  @media (max-width: 900px) { .sub { grid-template-columns: 1fr; } .sub__side { order: -1; } }
+  .sub .prose > :global(p:first-child) { font-size: 1.18rem; color: var(--night); }
+  .mv { display: grid; gap: 24px; margin-top: 32px; }
+  .sub__side { position: sticky; top: 100px; display: grid; gap: 14px; justify-items: start; }
+  .sub__logo { width: 100%; border: 1px solid var(--line); border-radius: var(--radius-l); padding: 28px; display: grid; place-items: center; background: #fff; }
+  .sub__logo img { max-height: 200px; width: auto; object-fit: contain; }
+  .pager { padding-block: 28px; }
+  .pager__inner { display: flex; justify-content: space-between; gap: 16px; }
+  .pager a { text-decoration: none; font-weight: 600; display: grid; gap: 2px; max-width: 45%; }
+  .pager span { font-size: .82rem; color: var(--muted); font-weight: 500; }
+  .pager__next { text-align: right; margin-left: auto; }
+</style>

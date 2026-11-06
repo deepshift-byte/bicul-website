@@ -1,0 +1,47 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHero from "../../components/PageHero.astro";
+import Icon from "../../components/Icon.astro";
+import { langParams, langOf, t, data, inline } from "../../lib/site.js";
+import { fmtDate } from "../../i18n/ui.js";
+import fs from "node:fs";
+export const getStaticPaths = langParams;
+const lang = langOf(Astro.params.lang);
+const u = t(lang); const d = data(lang);
+const size = (f) => { try { return (fs.statSync(`public/docs/${f}`).size / 1048576).toFixed(1) + " MB"; } catch { return ""; } };
+---
+<Base lang={lang} path="/publications" title={u.publications}>
+  <PageHero lang={lang} title={u.publications} crumbs={[{ label: u.newsMedia }, { label: u.publications }]} />
+  <section class="section">
+    <div class="wrap">
+      <ul class="pubs">
+        {d.publications.map((p) => (
+          <li>
+            <div class="pubs__icon"><Icon name="book" size={28} /></div>
+            <div class="pubs__body">
+              <h2>{p.title}</h2>
+              {p.body.map((b) => <p set:html={inline(b.x)} />)}
+              <p class="meta">{u.published}: <time datetime={p.iso}>{fmtDate(p.iso, lang)}</time></p>
+            </div>
+            <div class="pubs__dl">
+              {p.downloads.map((f) => (
+                <a class="btn btn--primary" href={`/docs/${f.file}`} download>{u.download} <Icon name="download" size={16} /></a>
+                <span class="meta">{f.file} · {size(f.file)}</span>
+              ))}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</Base>
+<style>
+  .pubs { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; }
+  .pubs li { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 20px; align-items: start; padding: 24px; border: 1px solid var(--line); border-radius: var(--radius-l); }
+  @media (max-width: 760px) { .pubs li { grid-template-columns: 1fr; } }
+  .pubs__icon { width: 56px; height: 56px; border-radius: var(--radius-m); background: var(--gold-soft); color: #6b4d0e; display: grid; place-items: center; }
+  .pubs h2 { font-size: 1.45rem; margin: 0 0 6px; }
+  .pubs__body p { margin: 0 0 8px; color: var(--muted); }
+  .pubs__dl { display: grid; gap: 6px; justify-items: start; }
+  .pubs__dl .meta { overflow-wrap: anywhere; font-size: .8rem; }
+</style>

@@ -1,0 +1,72 @@
+---
+import Base from "../../../layouts/Base.astro";
+import PageHero from "../../../components/PageHero.astro";
+import Icon from "../../../components/Icon.astro";
+import OppCard from "../../../components/OppCard.astro";
+import { langParams, langOf, t, data, href, DATA } from "../../../lib/site.js";
+export const getStaticPaths = langParams;
+const lang = langOf(Astro.params.lang);
+const u = t(lang); const d = data(lang); const W = d.why;
+const opps = d.opportunities.map((o, i) => ({ o, sectors: DATA.en.opportunities[i].categories })).filter((x) => x.o.image).slice(0, 3);
+---
+<Base lang={lang} path="/invest" title={W.title} description={W.lead}>
+  <PageHero lang={lang} title={W.title} lead={W.lead} crumbs={[{ label: u.invest }, { label: u.whyInvest }]} />
+
+  <section class="section section--stone">
+    <div class="wrap">
+      <ul class="stats">
+        {d.stats.map((s) => <li><span>{s.value.replace(/\s+/g, "")}</span>{s.label}</li>)}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap why">
+      <div>
+        <h2>{W.question}?</h2>
+        <ol class="reasons">{W.reasons.map((r) => <li>{r}</li>)}</ol>
+        <div class="prose closing">{W.closing.map((p) => <p>{p}</p>)}</div>
+      </div>
+      <aside class="ceo">
+        <img src={W.ceo.photo.src} width={W.ceo.photo.w} height={W.ceo.photo.h} alt={W.ceo.name} loading="lazy" />
+        <div class="ceo__body">
+          <p class="ceo__kicker">{u.ceoMessage}</p>
+          <h3>{W.ceo.name}</h3>
+          <p>{W.ceo.role}</p>
+          <p><Icon name="mail" size={16} /> <a href={`mailto:${W.ceo.email}`}>{W.ceo.email}</a></p>
+          <a class="btn btn--primary" href={href(lang, "/contact")}>{u.contact}</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section section--mist">
+    <div class="wrap">
+      <div class="head">
+        <h2>{d.home.frontiers_title}</h2>
+        <a class="btn btn--line" href={href(lang, "/invest/opportunities")}>{u.viewAllOpportunities} ({d.opportunities.length})</a>
+      </div>
+      <div class="grid grid--3">{opps.map(({ o, sectors }) => <OppCard lang={lang} o={o} sectors={sectors} />)}</div>
+    </div>
+  </section>
+</Base>
+<style>
+  .stats { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .stats li { color: var(--muted); }
+  .stats span { display: block; font-family: var(--display); font-size: clamp(2.2rem, 4vw, 3rem); color: var(--lion); line-height: 1.1; }
+  @media (max-width: 720px) { .stats { grid-template-columns: 1fr 1fr; } }
+  .why { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 72px); align-items: start; }
+  @media (max-width: 900px) { .why { grid-template-columns: 1fr; } }
+  .reasons { list-style: none; counter-reset: r; padding: 0; margin: 24px 0 32px; display: grid; gap: 14px; }
+  .reasons li { counter-increment: r; display: grid; grid-template-columns: 48px 1fr; gap: 14px; padding: 18px 20px; border: 1px solid var(--line); border-radius: var(--radius-m); font-size: 1.04rem; }
+  .reasons li::before { content: counter(r); font-family: var(--display); font-size: 1.8rem; line-height: 1; color: var(--gold); }
+  .closing p:first-child { font-size: 1.12rem; color: var(--night); }
+  .ceo { position: sticky; top: 100px; border-radius: var(--radius-l); overflow: hidden; background: var(--night); color: #c9d0ea; }
+  .ceo img { width: 100%; aspect-ratio: 4/3.4; object-fit: cover; object-position: top; }
+  .ceo__body { padding: 22px 24px 26px; }
+  .ceo__body h3 { color: #fff; margin: 0 0 4px; }
+  .ceo__body a:not(.btn) { color: #fff; }
+  .ceo__kicker { color: var(--gold); font-weight: 700; font-size: .9rem; margin: 0 0 8px; }
+  .head { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .head h2 { margin: 0; }
+</style>

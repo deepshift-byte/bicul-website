@@ -1,0 +1,71 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHero from "../../components/PageHero.astro";
+import { langParams, langOf, t, data, href } from "../../lib/site.js";
+export const getStaticPaths = langParams;
+const lang = langOf(Astro.params.lang);
+const u = t(lang); const d = data(lang);
+// gallery photos, then news photographs (each linked to its story)
+const photos = d.gallery.map((g) => ({ img: g, link: null, caption: null }));
+const seen = new Set(photos.map((p) => p.img.src));
+for (const n of d.news) {
+  for (const im of [n.image, ...n.body.filter((b) => b.t === "img").map((b) => b.src)]) {
+    if (im && !seen.has(im.src)) { seen.add(im.src); photos.push({ img: im, link: href(lang, `/news/${n.slug}`), caption: n.title }); }
+  }
+}
+---
+<Base lang={lang} path="/gallery" title={u.gallery}>
+  <PageHero lang={lang} title={u.gallery} lead={u.galleryNote} crumbs={[{ label: u.newsMedia }, { label: u.gallery }]} />
+  <section class="section">
+    <div class="wrap">
+      <ul class="masonry">
+        {photos.map((p, i) => (
+          <li>
+            <button type="button" class="ph" data-i={i} aria-label={`${u.photo} ${i + 1} ${u.of} ${photos.length}`}>
+              <img src={p.img.src} width={p.img.w} height={p.img.h} alt={p.caption || ""} loading="lazy" decoding="async" />
+            </button>
+            {p.caption && <a class="cap" href={p.link}>{p.caption}</a>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+  <dialog class="lightbox" aria-label={u.gallery}>
+    <img alt="" />
+    <div class="lightbox__bar">
+      <button type="button" data-prev>{u.previous}</button>
+      <span data-count></span>
+      <button type="button" data-next>{u.next}</button>
+      <button type="button" data-close>{u.close}</button>
+    </div>
+  </dialog>
+  <script type="application/json" id="photos" set:html={JSON.stringify(photos.map((p) => ({ src: p.img.src, alt: p.caption || "" })))} />
+</Base>
+<script>
+  const photos = JSON.parse(document.getElementById("photos").textContent);
+  const dlg = document.querySelector(".lightbox");
+  const img = dlg.querySelector("img");
+  const count = dlg.querySelector("[data-count]");
+  let i = 0;
+  const show = (n) => { i = (n + photos.length) % photos.length; img.src = photos[i].src; img.alt = photos[i].alt; count.textContent = `${i + 1} / ${photos.length}`; };
+  document.querySelectorAll(".ph").forEach((b) => b.addEventListener("click", () => { show(+b.dataset.i); dlg.showModal(); }));
+  dlg.querySelector("[data-prev]").addEventListener("click", () => show(i - 1));
+  dlg.querySelector("[data-next]").addEventListener("click", () => show(i + 1));
+  dlg.querySelector("[data-close]").addEventListener("click", () => dlg.close());
+  dlg.addEventListener("keydown", (e) => { if (e.key === "ArrowLeft") show(i - 1); if (e.key === "ArrowRight") show(i + 1); });
+  dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+</script>
+<style>
+  .masonry { list-style: none; padding: 0; margin: 0; columns: 3 280px; column-gap: 14px; }
+  .masonry li { break-inside: avoid; margin-bottom: 14px; }
+  .ph { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: var(--radius-m); overflow: hidden; }
+  .ph img { width: 100%; transition: transform .3s; }
+  .ph:hover img { transform: scale(1.02); }
+  .cap { display: block; font-size: .85rem; margin-top: 6px; color: var(--muted); text-decoration: none; line-height: 1.35; }
+  .cap:hover { color: var(--lion); text-decoration: underline; }
+  .lightbox { border: 0; padding: 0; background: transparent; max-width: 96vw; max-height: 96vh; }
+  .lightbox::backdrop { background: rgba(10, 16, 40, .9); }
+  .lightbox img { max-width: 94vw; max-height: 82vh; margin: 0 auto; border-radius: 8px; }
+  .lightbox__bar { display: flex; gap: 10px; justify-content: center; align-items: center; margin-top: 12px; color: #fff; }
+  .lightbox__bar button { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.3); border-radius: 999px; padding: 8px 14px; font: 600 .9rem var(--body); cursor: pointer; }
+</style>

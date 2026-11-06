@@ -1,0 +1,42 @@
+---
+import Base from "../../../layouts/Base.astro";
+import PageHero from "../../../components/PageHero.astro";
+import Blocks from "../../../components/Blocks.astro";
+import NewsCard from "../../../components/NewsCard.astro";
+import { withLangs, t, data, href, DATA } from "../../../lib/site.js";
+import { fmtDate } from "../../../i18n/ui.js";
+export function getStaticPaths() {
+  return withLangs((lang) => DATA[lang].news.map((n) => ({ params: { slug: n.slug } })));
+}
+const { lang } = Astro.props;
+const u = t(lang); const d = data(lang);
+const n = d.news.find((x) => x.slug === Astro.params.slug);
+const more = d.news.filter((x) => x.slug !== n.slug).slice(0, 3);
+// drop body images identical to the lead photo
+const body = n.body.filter((b) => !(b.t === "img" && n.image && b.src.src === n.image.src));
+---
+<Base lang={lang} path={`/news/${n.slug}`} title={n.title} description={n.body.find((b) => b.t === "p")?.x}>
+  <PageHero lang={lang} title={n.title} crumbs={[{ label: u.newsMedia }, { label: u.news, href: href(lang, "/news") }]}>
+    <p class="when"><time datetime={n.iso}>{fmtDate(n.iso, lang)}</time></p>
+  </PageHero>
+  <article class="section">
+    <div class="wrap narrow">
+      {n.image && <img class="lead-img" src={n.image.src} width={n.image.w} height={n.image.h} alt="" />}
+      <div class="prose article"><Blocks blocks={body} /></div>
+      <p style="margin-top:32px"><a class="btn btn--line" href={href(lang, "/news")}>{u.backTo} {u.news.toLowerCase()}</a></p>
+    </div>
+  </article>
+  <section class="section section--stone">
+    <div class="wrap">
+      <h2>{u.relatedNews}</h2>
+      <div class="grid grid--3">{more.map((m) => <NewsCard lang={lang} n={m} compact />)}</div>
+    </div>
+  </section>
+</Base>
+<style>
+  .when { margin: 0; color: #c9d0ea; font-weight: 600; }
+  .lead-img { width: 100%; border-radius: var(--radius-l); margin-bottom: 32px; max-height: 620px; object-fit: cover; }
+  .article { max-width: none; }
+  .article :global(> p:first-of-type) { font-size: 1.15rem; color: var(--night); }
+  .article :global(h3) { font: 700 1.1rem var(--body); color: var(--night); }
+</style>

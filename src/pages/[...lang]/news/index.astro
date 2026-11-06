@@ -1,0 +1,36 @@
+---
+import Base from "../../../layouts/Base.astro";
+import PageHero from "../../../components/PageHero.astro";
+import NewsCard from "../../../components/NewsCard.astro";
+import { langParams, langOf, t, data, href } from "../../../lib/site.js";
+export const getStaticPaths = langParams;
+const lang = langOf(Astro.params.lang);
+const u = t(lang); const d = data(lang); const H = d.home;
+const years = [...new Set(d.news.map((n) => n.iso.slice(0, 4)))];
+const [lead, ...rest] = d.news;
+---
+<Base lang={lang} path="/news" title={u.news} description={H.news_text}>
+  <PageHero lang={lang} title={H.news_title} lead={H.news_text} crumbs={[{ label: u.newsMedia }, { label: u.news }]} />
+  <section class="section section--stone">
+    <div class="wrap" data-news-root>
+      <div class="chips" role="group" aria-label={u.allYears}>
+        <button class="chip" type="button" aria-pressed="true" data-year="all">{u.allYears}</button>
+        {years.map((y) => <button class="chip" type="button" aria-pressed="false" data-year={y}>{y}</button>)}
+      </div>
+      <div class="grid grid--3" data-grid>
+        {[lead, ...rest].map((n) => <NewsCard lang={lang} n={n} />)}
+      </div>
+    </div>
+  </section>
+</Base>
+<script>
+  const root = document.querySelector("[data-news-root]");
+  const chips = root.querySelectorAll(".chip");
+  const cards = root.querySelectorAll("[data-grid] > a");
+  const apply = (y) => {
+    chips.forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.year === y)));
+    cards.forEach((c) => (c.hidden = !(y === "all" || c.dataset.year === y)));
+  };
+  chips.forEach((c) => c.addEventListener("click", () => apply(c.dataset.year)));
+</script>
+<style>[data-grid] > :global(a[hidden]) { display: none; }</style>

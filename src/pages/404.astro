@@ -1,0 +1,20 @@
+---
+import Base from "../layouts/Base.astro";
+import { t, href } from "../lib/site.js";
+const lang = "en";
+const u = t("en"); const l = t("lg");
+---
+<Base lang={lang} path="/" title={u.notFoundTitle}>
+  <section class="section">
+    <div class="wrap narrow" style="text-align:center">
+      <p style="font-family:var(--display);font-size:6rem;line-height:1;color:var(--gold);margin:0">404</p>
+      <h1>{u.notFoundTitle}</h1>
+      <p class="lead" style="margin-inline:auto">{u.notFoundText}</p>
+      <p lang="lg" class="lead" style="margin-inline:auto">{l.notFoundText}</p>
+      <p style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <a class="btn btn--primary" href={href("en", "/")}>{u.goHome}</a>
+        <a class="btn btn--line" href={href("lg", "/")} lang="lg">{l.goHome}</a>
+      </p>
+    </div>
+  </section>
+</Base>

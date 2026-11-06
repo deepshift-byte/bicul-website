@@ -1,0 +1,77 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHero from "../../components/PageHero.astro";
+import Icon from "../../components/Icon.astro";
+import { langParams, langOf, t, data } from "../../lib/site.js";
+export const getStaticPaths = langParams;
+const lang = langOf(Astro.params.lang);
+const u = t(lang); const d = data(lang); const c = d.contact; const f = d.footer;
+const mapQ = encodeURIComponent("Bulange, Mengo, Kampala, Uganda");
+---
+<Base lang={lang} path="/contact" title={c.title} description={`${c.address} · ${c.email} · ${c.tel}`}>
+  <PageHero lang={lang} title={c.title} lead={d.home.cta_text} crumbs={[{ label: u.contact }]} />
+  <section class="section">
+    <div class="wrap contact">
+      <div>
+        <h2>{c.info_title}</h2>
+        <ul class="info">
+          <li><Icon name="pin" size={22} /><div><strong>{u.address}</strong><span>{c.address}</span></div></li>
+          <li><Icon name="mail" size={22} /><div><strong>{u.email}</strong><a href={`mailto:${c.email}`}>{c.email}</a></div></li>
+          <li><Icon name="phone" size={22} /><div><strong>{u.tel}</strong><a href={`tel:${c.tel_link}`}>{c.tel}</a><a href={`tel:${f.phone_link}`}>{f.phone_display}</a></div></li>
+        </ul>
+        <div class="socials-row">
+          <a href={f.social[0]} target="_blank" rel="noopener"><Icon name="facebook" size={18} /> Facebook</a>
+          <a href={f.social[1]} target="_blank" rel="noopener"><Icon name="instagram" size={18} /> Instagram</a>
+          <a href={f.social[2]} target="_blank" rel="noopener"><Icon name="x-logo" size={16} /> X</a>
+        </div>
+        <a class="map" href={`https://www.google.com/maps/search/?api=1&query=${mapQ}`} target="_blank" rel="noopener">
+          <img src="/media/bulange-twekobe.webp" alt={u.heroCaption} loading="lazy" width="1365" height="767" />
+          <span><Icon name="pin" size={16} /> {c.address}</span>
+        </a>
+      </div>
+      <form class="form" data-contact-form novalidate data-missing={u.formMissing}>
+        <h2>{c.form_title}</h2>
+        <label>{u.formName}<input name="name" autocomplete="name" required /></label>
+        <label>{u.formEmail}<input name="email" type="email" autocomplete="email" required /></label>
+        <label>{u.formSubject}<input name="subject" /></label>
+        <label>{u.formMessage}<textarea name="message" rows="6" required></textarea></label>
+        <p class="form__err" role="alert" hidden></p>
+        <button class="btn btn--primary" type="submit">{u.formSend} <Icon name="send" size={16} /></button>
+        <p class="meta">{u.formNote}</p>
+      </form>
+    </div>
+  </section>
+</Base>
+<script>
+  const form = document.querySelector("[data-contact-form]");
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    const err = form.querySelector(".form__err");
+    if (!fd.get("name") || !fd.get("email") || !fd.get("message")) { err.textContent = form.dataset.missing; err.hidden = false; return; }
+    err.hidden = true;
+    const subject = fd.get("subject") || `Enquiry from ${fd.get("name")}`;
+    const body = `${fd.get("message")}\n\n— ${fd.get("name")} (${fd.get("email")})`;
+    location.href = `mailto:info@bicul.co.ug?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  });
+</script>
+<style>
+  .contact { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(32px, 6vw, 72px); align-items: start; }
+  @media (max-width: 900px) { .contact { grid-template-columns: 1fr; } }
+  .info { list-style: none; padding: 0; margin: 0 0 20px; display: grid; gap: 18px; }
+  .info li { display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: start; }
+  .info :global(svg) { width: 44px; height: 44px; padding: 10px; border-radius: 50%; background: var(--mist); color: var(--lion); }
+  .info strong { display: block; font-size: .85rem; color: var(--muted); }
+  .info span, .info a { display: block; font-size: 1.1rem; color: var(--night); }
+  .socials-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
+  .socials-row a { display: inline-flex; gap: 8px; align-items: center; border: 1.5px solid var(--line); border-radius: 999px; padding: 8px 14px; text-decoration: none; font-weight: 600; color: var(--night); }
+  .map { display: block; position: relative; border-radius: var(--radius-l); overflow: hidden; }
+  .map img { aspect-ratio: 16/9; object-fit: cover; width: 100%; }
+  .map span { position: absolute; left: 14px; bottom: 14px; background: #fff; border-radius: 999px; padding: 8px 14px; font-weight: 600; font-size: .9rem; color: var(--night); display: inline-flex; gap: 6px; align-items: center; }
+  .form { background: var(--stone); border-radius: var(--radius-l); padding: clamp(22px, 4vw, 40px); display: grid; gap: 16px; }
+  .form label { display: grid; gap: 6px; font-weight: 600; font-size: .95rem; color: var(--night); }
+  .form input, .form textarea { font: 400 1rem var(--body); padding: 12px 14px; border: 1.5px solid var(--line); border-radius: var(--radius-s); background: #fff; color: var(--ink); }
+  .form input:focus, .form textarea:focus { outline: none; border-color: var(--lion); box-shadow: 0 0 0 3px rgba(31,47,143,.15); }
+  .form .btn { justify-self: start; }
+  .form__err { color: #a12a1f; margin: 0; font-weight: 600; }
+</style>
